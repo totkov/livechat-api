@@ -67,7 +67,8 @@ namespace LiveChat.Services
                             Id = uc.User.Id,
                             FirstName = uc.User.FirstName,
                             LastName = uc.User.LastName,
-                            Email = uc.User.Email
+                            Email = uc.User.Email,
+                            ProfilePictureUrl = "images/" + uc.User.ProfilePicturePath
                         }),
                     Messages = c.Messages
                         .Select(m => new MessageModel

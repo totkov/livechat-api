@@ -14,10 +14,16 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
+using NSwag;
+using NSwag.AspNetCore;
+using NSwag.SwaggerGeneration.Processors.Security;
+
 using LiveChat.API.Helpers;
 using LiveChat.Data;
 using LiveChat.Services;
 using LiveChat.API.Hubs;
+using System.Reflection;
+using LiveChat.Services.ImageProcessing;
 
 namespace LiveChat.API
 {
@@ -88,6 +94,8 @@ namespace LiveChat.API
             // Services
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<IImageWriter, ImageWriter>();
+            services.AddScoped<IProfileService, ProfileService>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -98,8 +106,44 @@ namespace LiveChat.API
             }
 
             app.UseCors("MyPolicy");
+
+            app.UseStaticFiles();
+
+            app.UseSwaggerUi(
+                typeof(Startup).GetTypeInfo().Assembly,
+                settings =>
+                {
+                    settings.PostProcess = document =>
+                    {
+                        document.Info.Version = "v0.1";
+                        document.Info.Title = "Liva Chat API";
+                        document.Info.Description = "ASP.NET Core web API for Live Chat application";
+                        document.Info.Contact = new SwaggerContact
+                        {
+                            Name = "Nikola Totkov",
+                            Email = string.Empty,
+                            Url = string.Empty
+                        };
+                        document.Info.License = new SwaggerLicense
+                        {
+                            Name = "Apache License 2.0",
+                            Url = "https://www.apache.org/licenses/LICENSE-2.0"
+                        };
+                    };
+                    settings.GeneratorSettings.OperationProcessors.Add(new OperationSecurityScopeProcessor("apiKey"));
+                    settings.GeneratorSettings.DocumentProcessors.Add(new SecurityDefinitionAppender("apiKey", new SwaggerSecurityScheme()
+                    {
+                        Type = SwaggerSecuritySchemeType.ApiKey,
+                        Name = "Authorization",
+                        In = SwaggerSecurityApiKeyLocation.Header,
+                        Description = "Bearer token"
+                    }));
+                });
+
             app.UseAuthentication();
+
             app.UseMvc();
+
             app.UseSignalR(route =>
             {
                 route.MapHub<NotificationHub>("/notifications");

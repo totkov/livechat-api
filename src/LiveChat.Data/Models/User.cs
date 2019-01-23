@@ -32,6 +32,11 @@ namespace LiveChat.Data.Models
         [MaxLength(30)]
         public string LastName { get; set; }
 
+        [Required]
+        [MinLength(3)]
+        [MaxLength(200)]
+        public string ProfilePicturePath { get; set; }
+
         public List<UserChat> UserChats { get; set; }
 
         public List<Message> Messages { get; set; }
