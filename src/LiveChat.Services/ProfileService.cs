@@ -46,7 +46,8 @@ namespace LiveChat.Services
                     Id = u.Id,
                     Email = u.Email,
                     FirstName = u.FirstName,
-                    LastName = u.LastName
+                    LastName = u.LastName,
+                    ProfilePicturePath = "images/" + u.ProfilePicturePath
                 })
                 .FirstOrDefault();
         }
