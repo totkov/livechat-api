@@ -25,6 +25,8 @@ namespace LiveChat.Infrastructure.DataTransferModels
         public string AuthorFirstName { get; set; }
 
         public string AuthoeLastName { get; set; }
+
+        public string ProfilePictureUrl { get; set; }
     }
 
     public class UserInChatModel
@@ -36,7 +38,5 @@ namespace LiveChat.Infrastructure.DataTransferModels
         public string FirstName { get; set; }
 
         public string LastName { get; set; }
-
-        public string ProfilePictureUrl { get; set; }
     }
 }

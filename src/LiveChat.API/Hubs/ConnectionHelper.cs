@@ -9,6 +9,11 @@ namespace LiveChat.API.Hubs
 
         public static void AddConnection(string connectionId, int userId)
         {
+            if (_connections.ContainsKey(userId))
+            {
+                _connections.TryRemove(userId, out string oldId);
+            }
+
             _connections.TryAdd(userId, connectionId);
         }
 

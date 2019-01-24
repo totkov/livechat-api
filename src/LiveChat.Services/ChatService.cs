@@ -67,8 +67,7 @@ namespace LiveChat.Services
                             Id = uc.User.Id,
                             FirstName = uc.User.FirstName,
                             LastName = uc.User.LastName,
-                            Email = uc.User.Email,
-                            ProfilePictureUrl = "images/" + uc.User.ProfilePicturePath
+                            Email = uc.User.Email
                         }),
                     Messages = c.Messages
                         .Select(m => new MessageModel
@@ -78,6 +77,7 @@ namespace LiveChat.Services
                             AuthorId = m.AuthorId.Value,
                             AuthorFirstName = m.Author.FirstName,
                             AuthoeLastName = m.Author.LastName,
+                            ProfilePictureUrl = "images/" + m.Author.ProfilePicturePath,
                             Text = m.Text
                         })
                         .OrderBy(m => m.DateTime)

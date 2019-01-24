@@ -72,7 +72,13 @@ namespace LiveChat.API.Controllers
                     .Where(c => usersInChat.Contains(c.Key))
                     .Select(c => c.Value)
                     .ToList();
-                this._hubContext.Clients.Users(connectionIds).SendAsync("updateChats");
+
+                foreach (var id in connectionIds)
+                {
+                    this._hubContext.Clients.Client(id).SendAsync("updateChats");
+                }
+
+                //this._hubContext.Clients.All.SendAsync("updateChats");
 
                 if (result.MessageId != -1)
                     return this.Ok(result);
