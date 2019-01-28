@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using LiveChat.Data;
 using LiveChat.Services.ImageProcessing;
 using LiveChat.Infrastructure.DataTransferModels.Profile;
+using System.Collections.Generic;
 
 namespace LiveChat.Services
 {
@@ -50,6 +51,23 @@ namespace LiveChat.Services
                     ProfilePicturePath = "images/" + u.ProfilePicturePath
                 })
                 .FirstOrDefault();
+        }
+
+        public IEnumerable<SearchUserResponse> SearchUser(string phrase, int page, int itemsPerPage)
+        {
+            return this._context.Users
+                .Where(u => u.Email.Contains(phrase) || u.FirstName.Contains(phrase) || u.LastName.Contains(phrase))
+                .Select(u => new SearchUserResponse
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    ProfilePicturePath = "images/" + u.ProfilePicturePath
+                })
+                .Skip(page * itemsPerPage)
+                .Take(itemsPerPage)
+                .ToList();
         }
     }
 }

@@ -17,22 +17,37 @@ namespace LiveChat.Services
             this._context = context;
         }
 
-        public CreateChatResponse Create(CreateChatRequest createRequest, int creatorId)
+        public CreateChatResponse Create(int userId, int creatorId)
         {
             try
             {
+                var user = this._context.Users.FirstOrDefault(u => u.Id == userId);
+                if (user == null) throw new InvalidOperationException();
+
+                var existingChat = (from c in this._context.Chats
+                                    join uc in this._context.UserChats on c.Id equals uc.ChatId
+                                    where (c.UserChats.Count == 2) && (uc.UserId == creatorId || uc.UserId == userId)
+                                    group uc by uc.ChatId into g
+                                    where g.Count() == 2
+                                    select new
+                                    {
+                                        Id = g.Key
+                                    }).FirstOrDefault();
+
+                if (existingChat != null)
+                {
+                    return new CreateChatResponse
+                    {
+                        ChatId = existingChat.Id,
+                        Message = "This chat already exist!"
+                    };
+                }
+
                 Chat chat = new Chat();
                 this._context.Chats.Add(chat);
                 this._context.SaveChanges();
 
-                foreach (var userEmail in createRequest.UserEmails)
-                {
-                    var user = this._context.Users.FirstOrDefault(u => u.Email == userEmail);
-
-                    if (user != null)
-                        this._context.UserChats.Add(new UserChat { ChatId = chat.Id, UserId = user.Id });
-                }
-
+                this._context.UserChats.Add(new UserChat { ChatId = chat.Id, UserId = user.Id });
                 this._context.UserChats.Add(new UserChat { ChatId = chat.Id, UserId = creatorId });
                 this._context.SaveChanges();
 
@@ -107,8 +122,9 @@ namespace LiveChat.Services
                 {
                     Id = c.Id,
                     Users = c.UserChats.Select(uc => new { uc.User.FirstName, uc.User.LastName }),
-                    LastMessage = c.Messages.OrderByDescending(m => m.Date).Select(m => new { m.Author.FirstName, m.Author.LastName, m.Text }).Take(1)
-                }).ToList();
+                    LastMessage = c.Messages.OrderByDescending(m => m.Date).Select(m => new { m.Author.FirstName, m.Author.LastName, m.Text, m.Date }).Take(1)
+                })
+                .ToList();
 
             var result = new List<ChatResponse>();
 
@@ -117,14 +133,27 @@ namespace LiveChat.Services
                 var chatResponse = new ChatResponse();
                 var lastMessage = chat.LastMessage.FirstOrDefault();
 
-                chatResponse.Id = chat.Id;
-                chatResponse.Users = string.Join(", ", chat.Users.Select(u => string.Format("{0} {1}", u.FirstName, u.LastName)));
-                chatResponse.LastMessage = lastMessage == null ? "" : string.Format("{0} {1}: {2}", lastMessage.FirstName, lastMessage.LastName, lastMessage.Text);
+                if (lastMessage != null)
+                {
+                    chatResponse.Id = chat.Id;
+                    chatResponse.Users = chat.Users.Select(u => string.Format("{0} {1}", u.FirstName, u.LastName));
+                    chatResponse.LastMessageText = lastMessage.Text;
+                    chatResponse.LastMessageAuthor = string.Format("{0} {1}", lastMessage.FirstName, lastMessage.LastName);
+                    chatResponse.LastMessageDate = lastMessage.Date;
+                }
+                else
+                {
+                    chatResponse.Id = chat.Id;
+                    chatResponse.Users = chat.Users.Select(u => string.Format("{0} {1}", u.FirstName, u.LastName));
+                    chatResponse.LastMessageText = "";
+                    chatResponse.LastMessageAuthor = "";
+                    chatResponse.LastMessageDate = DateTime.UtcNow;
+                }
 
                 result.Add(chatResponse);
             }
 
-            return result;
+            return result.OrderByDescending(r => r.LastMessageDate).ToList();
         }
 
         public SendMessageResponse SendMessage(int chatId, SendMessageRequest sendMessageRequest, int userId)
@@ -164,7 +193,7 @@ namespace LiveChat.Services
                     Message = ex.Message
                 };
             }
-            
+
         }
 
         public IList<int> UsersInChat(int chatId)

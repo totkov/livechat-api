@@ -44,7 +44,8 @@ namespace LiveChat.Services
                     Password = hashedPassword,
                     Salt = salt,
                     FirstName = requestModel.FirstName,
-                    LastName = requestModel.LastName
+                    LastName = requestModel.LastName,
+                    ProfilePicturePath = "base-avatar.jpg"
                 };
 
                 this._context.Users.Add(user);

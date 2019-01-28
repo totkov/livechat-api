@@ -8,7 +8,7 @@ namespace LiveChat.Services
     {
         IEnumerable<ChatResponse> GetUsersChats(int userId);
 
-        CreateChatResponse Create(CreateChatRequest createRequest, int creatorId);
+        CreateChatResponse Create(int userId, int creatorId);
 
         ChatDetailsResponse GetChat(int chatId, int userId);
 

@@ -46,19 +46,14 @@ namespace LiveChat.API.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateChat([FromBody] CreateChatRequest model)
+        public IActionResult CreateChat(int userId)
         {
-            if (this.ModelState.IsValid)
-            {
-                var result = this._chatService.Create(model, this.LoggedUserId);
+            var result = this._chatService.Create(userId, this.LoggedUserId);
 
-                if (result.ChatId != -1)
-                    return this.Ok(result);
-                else
-                    return this.BadRequest(result);
-            }
-
-            return this.BadRequest(new CreateChatResponse { ChatId = -1, Message = this.ModelState.Values.ToString() });
+            if (result.ChatId != -1)
+                return this.Ok(result);
+            else
+                return this.BadRequest(result);
         }
 
         [HttpPost]

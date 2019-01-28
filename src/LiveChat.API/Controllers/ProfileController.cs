@@ -37,5 +37,12 @@ namespace LiveChat.API.Controllers
         {
             return this.Ok(this._profileService.GetProfile(this.LoggedUserId));
         }
+
+        [HttpGet]
+        public IActionResult SearchUser(string phrase, int page, int itemsPerPage)
+        {
+            var result = this._profileService.SearchUser(phrase, page, itemsPerPage);
+            return this.Ok(result);
+        }
     }
 }
